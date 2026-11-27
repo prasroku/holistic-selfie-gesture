@@ -1,0 +1,7 @@
+# Selfies taken by selfie_with_gesture.py
+photo.jpg
+
+__pycache__/
+*.pyc
+.venv/
+venv/
