@@ -1,18 +1,12 @@
 import cv2
 import mediapipe as MP
-from libs.coordinates_cv import (
-    calculate_coordinates,
-    check_if_hand_is_open_and_straight,
-    all_fingers_up,
-)
 from holistic_model import get_fps
+from libs.coordinates_cv import all_fingers_up, calculate_coordinates, check_if_hand_is_open_and_straight
 
 cap = cv2.VideoCapture(0)
 mpHands = MP.solutions.hands
 mp_Holistic = MP.solutions.holistic
-model_holistic = mp_Holistic.Holistic(
-    min_detection_confidence=0.5, min_tracking_confidence=0.5
-)
+model_holistic = mp_Holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5)
 hands = mpHands.Hands()
 coord_list = []
 id_list = []
@@ -29,7 +23,7 @@ while cap.isOpened():
     h, w, c = img.shape
     frame = cv2.resize(img, (800, 600))
     image2 = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    results2 = model_holistic.process(image2)    
+    results2 = model_holistic.process(image2)
 
     if results.multi_hand_landmarks:
         for handLms in results.multi_hand_landmarks:
@@ -39,10 +33,7 @@ while cap.isOpened():
                 coord_list.append(cx_cy_list)
 
             coord_dict = dict(zip(id_list, coord_list))
-            if (
-                check_if_hand_is_open_and_straight(coord_dict) is True
-                and all_fingers_up(coord_dict) is True
-            ):
+            if check_if_hand_is_open_and_straight(coord_dict) is True and all_fingers_up(coord_dict) is True:
                 Take_photo = True
 
     if Take_photo:

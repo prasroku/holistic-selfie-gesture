@@ -1,12 +1,11 @@
-import mediapipe as MP
-import cv2
 import time
+
+import cv2
+import mediapipe as MP
 
 mp_drawing = MP.solutions.drawing_utils
 mp_holistic = MP.solutions.holistic
-model_holistic = mp_holistic.Holistic(
-    min_detection_confidence=0.5, min_tracking_confidence=0.5
-)
+model_holistic = mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5)
 capture = cv2.VideoCapture(0)
 
 
@@ -21,14 +20,10 @@ def get_holisitc_model(results, image):
     )
 
     # Draw Right Hand Land Marks
-    mp_drawing.draw_landmarks(
-        image, results.right_hand_landmarks, mp_holistic.HAND_CONNECTIONS
-    )
+    mp_drawing.draw_landmarks(image, results.right_hand_landmarks, mp_holistic.HAND_CONNECTIONS)
 
     # Draw Left Hand Land Marks
-    mp_drawing.draw_landmarks(
-        image, results.left_hand_landmarks, mp_holistic.HAND_CONNECTIONS
-    )
+    mp_drawing.draw_landmarks(image, results.left_hand_landmarks, mp_holistic.HAND_CONNECTIONS)
 
 
 def get_fps():
@@ -55,7 +50,7 @@ def output_holistic_model(image, results):
 
 
 while capture.isOpened():
-    success, frame = capture.read()    
+    success, frame = capture.read()
     frame = cv2.resize(frame, (800, 600))
     image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     image.flags.writeable = False
