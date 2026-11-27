@@ -1,0 +1,3 @@
+# 0.10.21 is the last release with the mp.solutions API this project uses.
+# It pulls in a compatible opencv-contrib-python and numpy - do not add opencv-python as well.
+mediapipe==0.10.21
