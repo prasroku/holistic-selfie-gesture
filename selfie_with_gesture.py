@@ -1,59 +1,61 @@
 import cv2
 import mediapipe as MP
-from holistic_model import get_fps
+
 from libs.coordinates_cv import all_fingers_up, calculate_coordinates, check_if_hand_is_open_and_straight
+from libs.fps import FpsCounter
 
-cap = cv2.VideoCapture(0)
-mpHands = MP.solutions.hands
-mp_Holistic = MP.solutions.holistic
-model_holistic = mp_Holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5)
-hands = mpHands.Hands()
-coord_list = []
-id_list = []
-Take_photo = True
+mp_hands = MP.solutions.hands
+PHOTO_FILE = "photo.jpg"
 
-while cap.isOpened():
-    success, img = cap.read()
 
-    if not success:
-        break
+def hand_coordinates(hand_landmarks, image) -> dict[int, list[float]]:
+    """Pixel coordinates of one hand's 21 landmarks, keyed by landmark id."""
+    h, w, _ = image.shape
+    return {i: calculate_coordinates(lm, image, h, w) for i, lm in enumerate(hand_landmarks.landmark)}
 
-    imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    results = hands.process(imgRGB)
-    h, w, c = img.shape
-    frame = cv2.resize(img, (800, 600))
-    image2 = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    results2 = model_holistic.process(image2)
 
-    if results.multi_hand_landmarks:
-        for handLms in results.multi_hand_landmarks:
-            for id, lm in enumerate(handLms.landmark):
-                id_list.append(id)
-                cx_cy_list = calculate_coordinates(lm, img, h, w)
-                coord_list.append(cx_cy_list)
+def should_take_photo(results, image) -> bool:
+    """True when any detected hand is an open palm with every finger pointing up."""
+    for hand in results.multi_hand_landmarks or []:
+        coords = hand_coordinates(hand, image)
+        if check_if_hand_is_open_and_straight(coords) and all_fingers_up(coords):
+            return True
+    return False
 
-            coord_dict = dict(zip(id_list, coord_list))
-            if check_if_hand_is_open_and_straight(coord_dict) is True and all_fingers_up(coord_dict) is True:
-                Take_photo = True
 
-    if Take_photo:
-        fps = get_fps()
-        cv2.putText(
-            img,
-            f"{int(fps)} FPS",
-            (10, 70),
-            cv2.FONT_HERSHEY_COMPLEX,
-            1,
-            (0, 255, 0),
-            2,
-        )
-        cv2.imwrite("photo.jpg", img)
-        Take_photo = False
+def main():
+    cap = cv2.VideoCapture(0)
+    hands = mp_hands.Hands()
+    fps = FpsCounter()
+    try:
+        while cap.isOpened():
+            success, img = cap.read()
+            if not success:
+                break
 
-    cv2.imshow("Image", img)
+            results = hands.process(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+            frame_fps = fps.tick()
 
-    if cv2.waitKey(10) & 0xFF == ord("q"):
-        break
+            if should_take_photo(results, img):
+                cv2.putText(
+                    img,
+                    f"{int(frame_fps)} FPS",
+                    (10, 70),
+                    cv2.FONT_HERSHEY_COMPLEX,
+                    1,
+                    (0, 255, 0),
+                    2,
+                )
+                cv2.imwrite(PHOTO_FILE, img)
 
-cap.release()
-cv2.destroyAllWindows()
+            cv2.imshow("Image", img)
+
+            if cv2.waitKey(10) & 0xFF == ord("q"):
+                break
+    finally:
+        cap.release()
+        cv2.destroyAllWindows()
+
+
+if __name__ == "__main__":
+    main()

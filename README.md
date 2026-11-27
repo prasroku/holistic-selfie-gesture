@@ -2,8 +2,17 @@ Holistic model is the program to represent the landmarks based on holistic model
 Selfie with gesture  program  takes a selfie based on gesture of palm and save in the current directory
 
 ######################################################
-Requirements: 
-pip install opencv-python mediapipe msvc-runtime
+Requirements (Python 3.11, mediapipe is pinned to 0.10.21 - newer releases removed the mp.solutions API used here):
+python -m venv .venv
+.venv\Scripts\python.exe -m pip install -r requirements.txt
+
+Run (press q in the window to quit):
+.venv\Scripts\python.exe holistic_model.py
+.venv\Scripts\python.exe selfie_with_gesture.py
+
+Tests (no webcam needed - the camera and windows are faked):
+.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+.venv\Scripts\python.exe -m pytest tests
 
 Libs folder contains coordinates calculator and palm position checking medthods based on landmarks from Holistic model
 
